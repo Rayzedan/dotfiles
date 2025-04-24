@@ -13,16 +13,8 @@ vim.o.colorcolumn = '90'
 vim.g.root_spec = { 'cwd' }
 vim.g.have_nerd_font = true
 
--- [[ Setting options ]]
--- See `:help vim.opt`
--- NOTE: You can change these options as you wish!
---  For more options, you can see `:help option-list`
-
--- Make line numbers default
 vim.opt.number = true
--- You can also add relative line numbers, to help with jumping.
---  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -30,10 +22,6 @@ vim.opt.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
 
--- Sync clipboard between OS and Neovim.
---  Schedule the setting after `UiEnter` because it can increase startup-time.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
 vim.schedule(function()
   vim.opt.clipboard = 'unnamedplus'
 end)
@@ -61,9 +49,6 @@ vim.opt.timeoutlen = 300
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 
--- Sets how neovim will display certain whitespace characters in the editor.
---  See `:help 'list'`
---  and `:help 'listchars'`
 vim.opt.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
@@ -99,6 +84,13 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
+vim.api.nvim_create_autocmd({ 'BufReadPost', 'BufWritePre' }, {
+  callback = function()
+    vim.cmd 'silent %s/\\s\\+$//ge'
+    vim.cmd 'silent %s/\\t/    /ge'
+  end,
+})
+
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
@@ -115,15 +107,21 @@ vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower win
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 local opts = { noremap = true, silent = true }
 vim.api.nvim_set_keymap('n', '<Leader>nf', ":lua require('neogen').generate()<CR>", opts)
--- vim.keymap.set('n', '<CR>', 'i<CR><Esc>')
--- vim.keymap.set('n', '<S-CR>', 'm`O<Esc>``')
+vim.keymap.set('n', '<CR>', 'i<CR><Esc>')
+vim.keymap.set('n', '<S-CR>', 'm`O<Esc>``')
 vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
-vim.keymap.set('n', '<A-j>', "<cmd>execute 'move .+' . v:count1<cr>==", { desc = 'Move Down' })
-vim.keymap.set('n', '<A-k>', "<cmd>execute 'move .-' . (v:count1 + 1)<cr>==", { desc = 'Move Up' })
-vim.keymap.set('i', '<A-j>', '<esc><cmd>m .+1<cr>==gi', { desc = 'Move Down' })
-vim.keymap.set('i', '<A-k>', '<esc><cmd>m .-2<cr>==gi', { desc = 'Move Up' })
-vim.keymap.set('v', '<A-j>', ":<C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = 'Move Down' })
-vim.keymap.set('v', '<A-k>', ":<C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = 'Move Up' })
+vim.keymap.set('n', '<C-j>', "<cmd>execute 'move .+' . v:count1<cr>==", { desc = 'Move Down' })
+vim.keymap.set('n', '<C-k>', "<cmd>execute 'move .-' . (v:count1 + 1)<cr>==", { desc = 'Move Up' })
+vim.keymap.set('i', '<C-j>', '<esc><cmd>m .+1<cr>==gi', { desc = 'Move Down' })
+vim.keymap.set('i', '<C-k>', '<esc><cmd>m .-2<cr>==gi', { desc = 'Move Up' })
+vim.keymap.set('v', '<C-j>', ":<C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = 'Move Down' })
+vim.keymap.set('v', '<C-k>', ":<C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = 'Move Up' })
+vim.keymap.set('n', '<C-j>', ":<C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = 'Move Down' })
+vim.keymap.set('n', '<C-k>', ":<C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = 'Move Up' })
+-- windows
+vim.keymap.set('n', '<leader>-', '<C-W>s', { desc = 'Split Window Below', remap = true })
+vim.keymap.set('n', '<leader>|', '<C-W>v', { desc = 'Split Window Right', remap = true })
+vim.keymap.set('n', '<leader>wd', '<C-W>c', { desc = 'Delete Window', remap = true })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -309,7 +307,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
-      vim.keymap.set('n', '<leader>ch','<cmd>ClangdSwitchSourceHeader<cr>', { desc = 'Switch Source/Header (C/C++)' })
+      vim.keymap.set('n', '<leader>ch', '<cmd>ClangdSwitchSourceHeader<cr>', { desc = 'Switch Source/Header (C/C++)' })
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
         -- You can pass additional configuration to Telescope to change the theme, layout, etc.
@@ -347,6 +345,12 @@ require('lazy').setup({
         { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
       },
     },
+  },
+  {
+    'danymat/neogen',
+    config = true,
+    -- Uncomment next line if you want to follow only stable versions
+    -- version = "*"
   },
   {
     -- Main LSP Configuration
@@ -560,12 +564,14 @@ require('lazy').setup({
             'clangd',
             '--background-index',
             '--clang-tidy',
-            '--header-insertion=iwyu',
+            -- '--header-insertion=iwyu',
             '--completion-style=detailed',
             '--function-arg-placeholders',
+            '--fallback-style=llvm',
             '--header-insertion=never',
           },
         },
+        pylsp = {},
         cmake = {},
         zls = {},
         -- gopls = {},
@@ -623,11 +629,62 @@ require('lazy').setup({
     lazy = false,
     priority = 1000,
     opts = {},
-    config = function ()
-      vim.cmd.colorscheme("kanagawa-paper")
-    end
+    config = function()
+      vim.cmd [[colorscheme kanagawa-paper-ink]]
+    end,
   },
-
+  -- {
+  --   'EdenEast/nightfox.nvim',
+  --   priority = 1000, -- Colorscheme plugin is loaded first before any other plugins
+  --   config = function()
+  --     vim.cmd [[colorscheme nordfox]]
+  --   end,
+  -- },
+  -- {
+  --   "oonamo/ef-themes.nvim",
+  --   config = function()
+  --     vim.cmd [[colorscheme ef-frost]]
+  --   end,
+  -- },
+  -- {
+  --   'catppuccin/nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   opts = {},
+  --   config = function()
+  --     vim.cmd [[colorscheme catppuccin-latte]]
+  --   end,
+  -- },
+  -- {
+  --   'rose-pine/neovim',
+  --   config = function()
+  --     vim.cmd [[colorscheme rose-pine-moon]]
+  --   end,
+  -- },
+  -- {
+  --   'Shatur/neovim-ayu',
+  --   lazy = false,
+  --   priority = 1000,
+  --   opts = {},
+  --   config = function()
+  --     vim.cmd [[colorscheme catppuccin-latte]]
+  --   end,
+  -- },
+  -- {
+  --   'NTBBloodbath/doom-one.nvim',
+  --   config = function()
+  --     vim.cmd [[colorscheme doom-one]]
+  --   end,
+  -- },
+  -- {
+  --   'folke/tokyonight.nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   opts = {},
+  --   config = function()
+  --     vim.cmd [[colorscheme tokyonight-day]]
+  --   end,
+  -- },
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
     event = 'InsertEnter',
@@ -663,12 +720,14 @@ require('lazy').setup({
       --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
-      'hrsh7th/cmp-nvim-lsp-signature-help',
+      -- 'hrsh7th/cmp-nvim-lsp-signature-help',
+      'onsails/lspkind.nvim',
     },
     config = function()
       -- See `:help cmp`
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
+      local lspkind = require 'lspkind'
       luasnip.config.setup {}
 
       cmp.setup {
@@ -678,7 +737,24 @@ require('lazy').setup({
           end,
         },
         completion = { completeopt = 'menu,menuone,noinsert' },
-
+        window = {
+          -- completion = {
+          --   winhighlight = 'Normal:Pmenu,FloatBorder:Pmenu,CursorLine:PmenuSel,Search:None',
+          --   col_offset = -3,
+          --   side_padding = 0,
+          -- },
+          completion = cmp.config.window.bordered {
+            winhighlight = 'Normal:Normal,FloatBorder:FloatBorder,CursorLine:Visual,Search:None',
+          },
+          menu = cmp.config.window.bordered {
+            winhighlight = 'Normal:Normal,FloatBorder:FloatBorder,CursorLine:Visual,Search:None',
+          },
+          documentation = {
+            winhighlight = 'Normal:Normal,FloatBorder:FloatBorder,CursorLine:Visual,Search:None',
+            max_height = 15,
+            max_width = 30,
+          },
+        },
         -- For an understanding of why these mappings were
         -- chosen, you will need to read `:help ins-completion`
         --
@@ -698,7 +774,7 @@ require('lazy').setup({
           --  This will expand snippets if the LSP sent a snippet.
           ['<C-m>'] = cmp.mapping.confirm { select = true },
 
-          -- If you prefer more traditional completion keymaps,
+          -- If you prefer more traditional completion keymaps,ini
           -- you can uncomment the following lines
           --['<CR>'] = cmp.mapping.confirm { select = true },
           --['<Tab>'] = cmp.mapping.select_next_item(),
@@ -742,12 +818,81 @@ require('lazy').setup({
           { name = 'path' },
           { name = 'nvim_lsp_signature_help' },
         },
+        formatting = {
+          format = lspkind.cmp_format {
+            mode = 'symbol_text',
+            menu = {
+              buffer = '[Buffer]',
+              nvim_lsp = '[LSP]',
+              luasnip = '[LuaSnip]',
+              nvim_lua = '[Lua]',
+              latex_symbols = '[Latex]',
+            },
+          },
+        },
+        -- formatting = {
+        --   fields = { 'abbr', 'kind' },
+        --   format = function(_, item)
+        --     local icons = {
+        --       Text = '',
+        --       Method = '󰆧',
+        --       Function = '󰊕',
+        --       Constructor = '',
+        --       Field = '󰇽',
+        --       Variable = '󰂡',
+        --       Class = '󰠱',
+        --       Interface = '',
+        --       Module = '',
+        --       Property = '󰜢',
+        --       Unit = '',
+        --       Value = '󰎠',
+        --       Enum = '',
+        --       Keyword = '󰌋',
+        --       Snippet = '',
+        --       Color = '󰏘',
+        --       File = '󰈙',
+        --       Reference = '',
+        --       Folder = '󰉋',
+        --       EnumMember = '',
+        --       Constant = '󰏿',
+        --       Struct = '',
+        --       Event = '',
+        --       Operator = '󰆕',
+        --       TypeParameter = '󰅲',
+        --     }
+        --     item.kind = string.format('%s %s', item.kind, icons[item.kind] or '')
+        --     return item
+        --   end,
+        -- },
       }
     end,
   },
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
+  {
+    'folke/flash.nvim',
+    config = function()
+      require('flash').setup()
+    end,
+  },
+  {
+    'christoomey/vim-tmux-navigator',
+    cmd = {
+      'TmuxNavigateLeft',
+      'TmuxNavigateDown',
+      'TmuxNavigateUp',
+      'TmuxNavigateRight',
+      'TmuxNavigatePrevious',
+    },
+    keys = {
+      { '<c-h>', '<cmd><C-U>TmuxNavigateLeft<cr>' },
+      { '<c-j>', '<cmd><C-U>TmuxNavigateDown<cr>' },
+      { '<c-k>', '<cmd><C-U>TmuxNavigateUp<cr>' },
+      { '<c-l>', '<cmd><C-U>TmuxNavigateRight<cr>' },
+      { '<c-\\>', '<cmd><C-U>TmuxNavigatePrevious<cr>' },
+    },
+  },
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
     config = function()
