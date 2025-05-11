@@ -625,14 +625,25 @@ require('lazy').setup({
     end,
   },
   {
-    'thesimonho/kanagawa-paper.nvim',
+    'cdmill/neomodern.nvim',
     lazy = false,
     priority = 1000,
-    opts = {},
     config = function()
-      vim.cmd [[colorscheme kanagawa-paper-ink]]
+      require('neomodern').setup {
+        theme = 'gyokuro',
+      }
+      require('neomodern').load()
     end,
   },
+  -- {
+  --   'thesimonho/kanagawa-paper.nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   opts = {},
+  --   config = function()
+  --     vim.cmd [[colorscheme kanagawa-paper-ink]]
+  --   end,
+  -- },
   -- {
   --   'EdenEast/nightfox.nvim',
   --   priority = 1000, -- Colorscheme plugin is loaded first before any other plugins
