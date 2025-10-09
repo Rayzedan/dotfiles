@@ -307,7 +307,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
-      vim.keymap.set('n', '<leader>ch', '<cmd>ClangdSwitchSourceHeader<cr>', { desc = 'Switch Source/Header (C/C++)' })
+      vim.keymap.set('n', '<leader>ch', '<cmd>LspClangdSwitchSourceHeader<cr>', { desc = 'Switch Source/Header (C/C++)' })
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
         -- You can pass additional configuration to Telescope to change the theme, layout, etc.
@@ -348,9 +348,15 @@ require('lazy').setup({
   },
   {
     'danymat/neogen',
+    opts = {
+      snippet_engine = 'luasnip',
+      languages = {
+        lua = { template = { annotation_convention = 'ldoc' } },
+        cpp = { template = { annotation_convention = 'doxygen' } },
+        python = { template = { annotation_convention = 'numpydoc' } },
+      },
+    },
     config = true,
-    -- Uncomment next line if you want to follow only stable versions
-    -- version = "*"
   },
   {
     -- Main LSP Configuration
@@ -558,13 +564,24 @@ require('lazy').setup({
       --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
+      local clangd_path = ''
+      local query_driver = nil
+      local compile_commands_dir = nil
+      if vim.fn.has 'mac' == 1 then
+        clangd_path = '/opt/homebrew/Cellar/llvm/21.1.2/bin/clangd'
+        query_driver = '/opt/homebrew/opt/llvm/bin/clang++'
+      else
+        query_driver = '/proddir/install/toolchain/bin/*-kos-*,/proddir/install/toolchain/bin/*clang*'
+        compile_commands_dir = '/proddir/dist'
+      end
       local servers = {
         clangd = {
           cmd = {
-            'clangd',
+            clangd_path,
+            query_driver,
+            '--query-driver=/opt/homebrew/opt/llvm/bin/clang++',
             '--background-index',
             '--clang-tidy',
-            -- '--header-insertion=iwyu',
             '--completion-style=detailed',
             '--function-arg-placeholders',
             '--fallback-style=llvm',
@@ -574,7 +591,7 @@ require('lazy').setup({
         pylsp = {},
         cmake = {},
         zls = {},
-        -- gopls = {},
+        gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -624,26 +641,35 @@ require('lazy').setup({
       }
     end,
   },
-  {
-    'cdmill/neomodern.nvim',
-    lazy = false,
-    priority = 1000,
-    config = function()
-      require('neomodern').setup {
-        theme = 'gyokuro',
-      }
-      require('neomodern').load()
-    end,
-  },
   -- {
-  --   'thesimonho/kanagawa-paper.nvim',
+  --   'nyoom-engineering/oxocarbon.nvim',
+  --   -- Add in any other configuration;
+  --   --   event = foo,
+  --     config = function ()
+  --       vim.cmd [[colorscheme oxocarbon]]
+  --     end
+  --   --   end,
+  -- },
+  -- {
+  --   'cdmill/neomodern.nvim',
   --   lazy = false,
   --   priority = 1000,
-  --   opts = {},
   --   config = function()
-  --     vim.cmd [[colorscheme kanagawa-paper-ink]]
+  --     require('neomodern').setup {
+  --       theme = 'gyokuro',
+  --     }
+  --     require('neomodern').load()
   --   end,
   -- },
+  {
+    'thesimonho/kanagawa-paper.nvim',
+    lazy = false,
+    priority = 1000,
+    opts = {},
+    config = function()
+      vim.cmd [[colorscheme kanagawa-paper-ink]]
+    end,
+  },
   -- {
   --   'EdenEast/nightfox.nvim',
   --   priority = 1000, -- Colorscheme plugin is loaded first before any other plugins
@@ -678,7 +704,7 @@ require('lazy').setup({
   --   priority = 1000,
   --   opts = {},
   --   config = function()
-  --     vim.cmd [[colorscheme catppuccin-latte]]
+  --     vim.cmd [[colorscheme ayu-dark]]
   --   end,
   -- },
   -- {
@@ -693,7 +719,7 @@ require('lazy').setup({
   --   priority = 1000,
   --   opts = {},
   --   config = function()
-  --     vim.cmd [[colorscheme tokyonight-day]]
+  --     vim.cmd [[colorscheme tokyonight-night]]
   --   end,
   -- },
   { -- Autocompletion
@@ -1014,6 +1040,3 @@ require('lazy').setup({
     },
   },
 })
-
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
