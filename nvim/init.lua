@@ -85,7 +85,12 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 vim.api.nvim_create_autocmd({ 'BufReadPost', 'BufWritePre' }, {
-  callback = function()
+  pattern = "*",
+  callback = function(args)
+    local buftype = vim.bo[args.buf].buftype
+    if buftype == "quickfix" then
+      return
+    end
     vim.cmd 'silent %s/\\s\\+$//ge'
     vim.cmd 'silent %s/\\t/    /ge'
   end,
