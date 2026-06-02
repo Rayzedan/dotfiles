@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+LABEL="homebrew.mxcl.ollama"
+PLIST="${HOME}/Library/LaunchAgents/${LABEL}.plist"
+SOURCE_PLIST="/opt/homebrew/opt/ollama/${LABEL}.plist"
+DOMAIN="gui/$(id -u)"
+
+usage() {
+  printf 'Usage: %s {start|stop|restart|status|logs}\n' "$(basename "$0")"
+}
+
+ensure_plist() {
+  if [[ -f "$PLIST" ]]; then
+    return
+  fi
+
+  if [[ ! -f "$SOURCE_PLIST" ]]; then
+    printf 'Missing plist: %s\n' "$SOURCE_PLIST" >&2
+    printf 'Install Ollama with Homebrew first: brew install ollama\n' >&2
+    exit 1
+  fi
+
+  mkdir -p "$(dirname "$PLIST")"
+  cp "$SOURCE_PLIST" "$PLIST"
+}
+
+is_loaded() {
+  launchctl print "${DOMAIN}/${LABEL}" >/dev/null 2>&1
+}
+
+start_service() {
+  ensure_plist
+  if is_loaded; then
+    printf 'Ollama service is already running.\n'
+    return
+  fi
+
+  launchctl bootstrap "$DOMAIN" "$PLIST"
+  printf 'Ollama service started.\n'
+}
+
+stop_service() {
+  if ! is_loaded; then
+    printf 'Ollama service is already stopped.\n'
+    return
+  fi
+
+  launchctl bootout "$DOMAIN" "$PLIST"
+  printf 'Ollama service stopped.\n'
+}
+
+status_service() {
+  if is_loaded; then
+    printf 'Ollama service is running.\n'
+    launchctl print "${DOMAIN}/${LABEL}" | awk '
+      /^[[:space:]]*state = / { print }
+      /^[[:space:]]*pid = / { print }
+      /^[[:space:]]*last exit code = / { print }
+      /^[[:space:]]*stdout path = / { print }
+      /^[[:space:]]*stderr path = / { print }
+    '
+    printf '\nModels:\n'
+    ollama list || true
+  else
+    printf 'Ollama service is stopped.\n'
+  fi
+}
+
+case "${1:-}" in
+  start)
+    start_service
+    ;;
+  stop)
+    stop_service
+    ;;
+  restart)
+    stop_service
+    start_service
+    ;;
+  status)
+    status_service
+    ;;
+  logs)
+    tail -f /opt/homebrew/var/log/ollama.log
+    ;;
+  *)
+    usage
+    exit 2
+    ;;
+esac

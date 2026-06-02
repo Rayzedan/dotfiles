@@ -1,9 +1,9 @@
 general.import = [
-    "~/.config/alacritty/themes/themes/catppuccin_latte.toml"
+    "~/.config/alacritty/themes/themes/rose_pine.toml"
 ]
 
 [font]
-size = 14
+size = 16
 
 [font.bold]
 
@@ -44,7 +44,7 @@ shell = { program = "/bin/zsh", args = ["-l", "-c", "tmux attach || tmux"] }
 
 [window]
 opacity = 1.0
-startup_mode = "Maximized"
+startup_mode = "Fullscreen"
 
 [window.padding]
 x = 0
